@@ -220,7 +220,7 @@ pub enum TextContent {
     Translate {
         translate: Cow<'static, str>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        with: Vec<TextComponent>,
+        with: Vec<Cow<'static, str>>,
     },
     /// Displays the name of one or more entities found by a selector.
     EntityNames {

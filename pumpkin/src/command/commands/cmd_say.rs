@@ -1,6 +1,7 @@
 use async_trait::async_trait;
-use pumpkin_core::text::TextComponent;
+use pumpkin_core::text::{TextComponent, TextContent};
 use pumpkin_protocol::client::play::CSystemChatMessage;
+use pumpkin_registry::SYNCED_REGISTRIES;
 
 use crate::command::{
     args::{arg_message::MsgArgConsumer, Arg, ConsumedArgs},
@@ -30,9 +31,21 @@ impl CommandExecutor for SayExecutor {
             return Err(InvalidConsumption(Some(ARG_MESSAGE.into())));
         };
 
+        let chat_type = SYNCED_REGISTRIES.chat_type.get("say_command").unwrap();
+
         server
             .broadcast_packet_all(&CSystemChatMessage::new(
-                &TextComponent::text(format!("[{sender}] {msg}")),
+                &TextComponent {
+                    content: TextContent::Translate {
+                        translate: chat_type.chat.translation_key.clone().into(),
+                        with: vec![
+                            sender.to_string().into(),
+                            msg.to_string().into(),
+                        ],
+                    },
+                    style: chat_type.chat.style.clone().unwrap_or_default(),
+                    extra: vec![],
+                },
                 false,
             ))
             .await;
